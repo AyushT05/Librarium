@@ -1,10 +1,20 @@
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY
 
 export async function queryGemini(userMessage, booksData) {
   const booksContext = JSON.stringify(booksData, null, 2)
 
-  const systemPrompt = `You are a helpful library assistant for a library management system. You have access to the complete catalog of books in this library. 
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: `You are a helpful library assistant for a library management system. You have access to the complete catalog of books in this library.
 
 Here is the current library catalog data:
 ${booksContext}
@@ -16,33 +26,23 @@ Your role is to:
 4. Answer factual questions about the catalog (e.g., how many books, which authors, which genres)
 
 Always base your answers on the actual data provided above. Be concise, helpful, and accurate. If asked about something not in the catalog, let the user know the library doesn't have it but feel free to suggest similar books that ARE in the catalog.
-
 Format responses clearly. For lists, use simple numbered or bullet format. Keep responses focused and useful.`
-
-  const payload = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: systemPrompt + '\n\nUser question: ' + userMessage }]
-      }
-    ],
-    generationConfig: {
+        },
+        {
+          role: "user",
+          content: userMessage
+        }
+      ],
       temperature: 0.7,
-      maxOutputTokens: 1024,
-    }
-  }
-
-  const response = await fetch(GEMINI_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+      max_tokens: 1024,
+    })
   })
 
   if (!response.ok) {
     const err = await response.json()
-    throw new Error(err.error?.message || 'Gemini API error')
+    throw new Error(JSON.stringify(err))
   }
 
   const data = await response.json()
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated.'
+  return data.choices[0].message.content
 }

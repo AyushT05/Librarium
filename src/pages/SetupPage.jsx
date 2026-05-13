@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { Database, Copy, CheckCircle } from 'lucide-react'
 
-const SQL = `create table if not exists books (
+const SQL = `-- Books table
+create table if not exists books (
   id uuid default gen_random_uuid() primary key,
   title text not null,
   author text not null,
@@ -15,8 +16,34 @@ const SQL = `create table if not exists books (
   created_at timestamptz default now()
 );
 
+-- Reservations table
+create table if not exists reservations (
+  id uuid default gen_random_uuid() primary key,
+  book_id uuid references books(id) on delete cascade,
+  borrower_name text not null,
+  borrower_phone text not null,
+  status text default 'pending' check (status in ('pending','collected','cancelled')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- RPC: decrement available copies
+create or replace function decrement_available(book_id uuid)
+returns void as $$
+  update books set available = available - 1 where id = book_id and available > 0;
+$$ language sql;
+
+-- RPC: increment available copies
+create or replace function increment_available(book_id uuid)
+returns void as $$
+  update books set available = available + 1 where id = book_id;
+$$ language sql;
+
+-- RLS policies
 alter table books enable row level security;
-create policy "Allow all" on books for all using (true) with check (true);`
+alter table reservations enable row level security;
+create policy "Allow all books" on books for all using (true) with check (true);
+create policy "Allow all reservations" on reservations for all using (true) with check (true);`
 
 export default function SetupPage({ onSetupComplete }) {
   const [copied, setCopied] = useState(false)
@@ -41,7 +68,7 @@ export default function SetupPage({ onSetupComplete }) {
       minHeight: '100vh', background: 'var(--bg-primary)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24
     }}>
-      <div style={{ maxWidth: 600, width: '100%' }}>
+      <div style={{ maxWidth: 640, width: '100%' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 }}>
           <Database size={28} color="var(--accent)" />
           <div>
@@ -57,7 +84,7 @@ export default function SetupPage({ onSetupComplete }) {
               {copied ? <><CheckCircle size={13} color="var(--green)" /> Copied</> : <><Copy size={13} /> Copy SQL</>}
             </button>
           </div>
-          <pre style={{ padding: 20, fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.7, overflow: 'auto' }}>
+          <pre style={{ padding: 20, fontFamily: 'var(--font-mono)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.7, overflow: 'auto', maxHeight: 360 }}>
             {SQL}
           </pre>
         </div>

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import BooksPage from './pages/BooksPage'
 import AIPage from './pages/AIPage'
 import AdminPage from './pages/AdminPage'
+import ReservationsPage from './pages/ReservationsPage'
 import SetupPage from './pages/SetupPage'
 import { supabase } from './lib/supabase'
 import { ThemeProvider, useTheme } from './lib/theme.jsx'
@@ -17,12 +18,19 @@ function ThemeToggle() {
   const { theme, toggle } = useTheme()
   return (
     <button
-      className="btn btn-ghost btn-icon"
       onClick={toggle}
       title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      style={{ color: 'var(--text-secondary)' }}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 7,
+        padding: '7px 14px', borderRadius: 'var(--radius)',
+        background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+        color: 'var(--text-secondary)', fontSize: '0.8rem',
+        fontFamily: 'var(--font-body)', cursor: 'pointer',
+        transition: 'all var(--transition)', whiteSpace: 'nowrap',
+      }}
     >
-      {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+      {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+      {theme === 'dark' ? 'Light mode' : 'Dark mode'}
     </button>
   )
 }
@@ -35,6 +43,7 @@ function AppShell() {
     '/books': 'Browse Catalog',
     '/ai': 'AI Assistant',
     '/admin': 'Admin Panel',
+    '/admin/reservations': 'Reservations',
   }
 
   return (
@@ -43,13 +52,16 @@ function AppShell() {
       <div className="main-content">
         <div className="topbar">
           <h2 className="topbar-title">{titles[location.pathname] || 'Librarium'}</h2>
-          <ThemeToggle />
+          <div style={{ marginLeft: 'auto' }}>
+            <ThemeToggle />
+          </div>
         </div>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/books" element={<BooksPage />} />
           <Route path="/ai" element={<AIPage />} />
           <Route path="/admin" element={<AdminGate><AdminPage /></AdminGate>} />
+          <Route path="/admin/reservations" element={<AdminGate><ReservationsPage /></AdminGate>} />
         </Routes>
       </div>
       <ToastContainer />

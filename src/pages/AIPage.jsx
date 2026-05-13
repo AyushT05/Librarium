@@ -90,7 +90,7 @@ export default function AIPage() {
             </div>
           </div>
           <div style={{ marginLeft: 'auto' }}>
-           
+            
           </div>
         </div>
 

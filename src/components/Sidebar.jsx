@@ -1,5 +1,5 @@
-import { NavLink, Link } from 'react-router-dom'
-import { BookOpen, LayoutDashboard, Bot, Shield, Library } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
+import { BookOpen, LayoutDashboard, Bot, Shield, Library, BookMarked } from 'lucide-react'
 
 export default function Sidebar() {
   return (
@@ -36,9 +36,14 @@ export default function Sidebar() {
 
         <div className="nav-section-label" style={{ marginTop: 8 }}>System</div>
 
-        <NavLink to="/admin" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+        <NavLink to="/admin" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
           <Shield size={16} />
           Admin Panel
+        </NavLink>
+
+        <NavLink to="/admin/reservations" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+          <BookMarked size={16} />
+          Reservations
         </NavLink>
       </nav>
 
